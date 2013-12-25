@@ -1,6 +1,7 @@
 module Time (Date(Date),
              Period(Period),
              Unit(..),
+             DayCounter(..),
              serialNumber,
              weekday,
              dayOfYear,
@@ -8,7 +9,9 @@ module Time (Date(Date),
              year,
              month,
              isLeapYear,
-             date
+             date,
+             dayCount,
+             yearFraction
             ) where
 
 newtype Date = Date Int deriving (Eq)
@@ -35,7 +38,7 @@ instance Show Date where
                           10 -> "October"
                           11 -> "November"
                           12 -> "December"
-     
+
 checkSerialNumber :: Date -> Bool
 checkSerialNumber (Date serialnumber) = if serialnumber >= 367 && serialnumber <= 109574 then True else False -- Jan 1st 1901 to Dec 31st 2199
 
@@ -47,7 +50,7 @@ weekday date = if wd == 0 then 7 else wd
      where wd = mod (serialNumber date) 7
 
 dayOfYear :: Date -> Int
-dayOfYear date = (serialNumber date) - (yearOffset.year) date 
+dayOfYear date = (serialNumber date) - (yearOffset.year) date
 
 dayOfMonth :: Date -> Int
 dayOfMonth date = dayOfYear date - monthOffset (month date) ((isLeapYear.year) date)
@@ -59,27 +62,27 @@ plus date days = if checkSerialNumber res then res else error ("invalid serial n
 minus :: Date -> Int -> Date
 minus date days = if checkSerialNumber res then res else error ("invalid serial number " ++ show res)
     where res = Date (serialNumber date - days)
-    
+
 year :: Date -> Int
 year date = year + correction
     where serial = serialNumber date
           year = ( div serial 365 ) + 1900
           correction = if serial <= yearOffset year then -1 else 0
-          
+
 month :: Date -> Int
-month date = m2
+month date = m''
     where d = dayOfYear date
           m = ( div d 30 ) + 1
           isLeap = (isLeapYear.year) date
-          m1 = correctm1 m
-          m2 = correctm2 m1
-          correctm1 x
-             | d <= monthOffset x isLeap = correctm1 x-1
+          m' = correctm m
+          m'' = correctm' m'
+          correctm x
+             | (d <= monthOffset x isLeap) = correctm (x-1)
              | otherwise = x
-          correctm2 x
-             | d > monthOffset (x+1) isLeap = correctm2 x+1
+          correctm' x
+             | (d > monthOffset (x+1) isLeap) = correctm' (x+1)
              | otherwise = x
-          
+
 date :: Int -> Int -> Int -> Date
 date day month year
     | day >= 1 && day <= mLen = Date (day + mOffset + yOffset)
@@ -156,7 +159,7 @@ isLeapYear year
             False,False, True,False,False,False, True,False,False,False,
             -- 2200
             False ]
-        
+
 monthOffset :: Int -> Bool -> Int
 monthOffset month leap
    | month >= 1 && month <=12 = case leap of
@@ -168,7 +171,7 @@ monthOffset month leap
 
 monthLength :: Int -> Bool -> Int
 monthLength month leap
-   | month >= 1 && month <= 12 = case leap of 
+   | month >= 1 && month <= 12 = case leap of
                                    False -> monthLengthList !! (month-1)
                                    True -> monthLeapLengthList !! (month-1)
    | otherwise = error ("month " ++ show month ++ " out of range")
@@ -241,8 +244,70 @@ yearOffset year
             105922,106287,106652,107018,107383,107748,108113,108479,108844,109209,
             -- 2200
             109574 ]
-   
-                           
-                           
-     
-     
+
+data DayCounter = Actual360 |
+                  Thirty360 | Thirty360USA | Thirty360BondBasis | Thirty360European |
+                  Thirty360EurobondBasis | Thirty360Italian |
+                  Actual365Fixed deriving (Eq)
+
+instance Show DayCounter where
+  show dayCounter = case dayCounter of
+    Actual360 -> "Actual/360"
+    Thirty360 -> "30/360"
+    Thirty360USA -> "30/360 (USA)"
+    Thirty360BondBasis -> "30/360 (Bond Basis)"
+    Thirty360European -> "30/360 (European)"
+    Thirty360EurobondBasis -> "30/360 (Eurobond Basis)"
+    Thirty360Italian -> "30/360 (Italian)"
+    Actual365Fixed -> "Actual/365 (Fixed)"
+
+dayCount :: DayCounter -> Date -> Date -> Date -> Date -> Int
+
+dayCount Actual360 (Date serial1) (Date serial2) _ _ = fromIntegral(serial2-serial1)
+
+dayCount Thirty360 date1 date2 _ _ = 360*(y2-y1) + 30*(m2'-m1-1) + max 0 30-d1 + min 30 d2'
+                                                       where y2 = year date2
+                                                             y1 = year date1
+                                                             m2 = month date2
+                                                             m1 = month date1
+                                                             d2 = dayOfMonth date2
+                                                             d1 = dayOfMonth date1
+                                                             (d2',m2') = if d2 == 31 && d1 < 30
+                                                                         then (1,m2+1)
+                                                                         else (d2,m2)
+
+dayCount Thirty360USA date1 date2 _ _ = dayCount Thirty360 date1 date2 undefined undefined
+dayCount Thirty360BondBasis date1 date2 _ _ = dayCount Thirty360 date1 date2 undefined undefined
+
+dayCount Thirty360European date1 date2 _ _ = 360*(y2-y1) + 30*(m2-m1-1) + max 0 30-d1 + min 30 d2
+                                                       where y2 = year date2
+                                                             y1 = year date1
+                                                             m2 = month date2
+                                                             m1 = month date1
+                                                             d2 = dayOfMonth date2
+                                                             d1 = dayOfMonth date1
+dayCount Thirty360EurobondBasis date1 date2 _ _ = dayCount Thirty360European date1 date2 undefined undefined
+
+dayCount Thirty360Italian date1 date2 _ _ = 360*(y2-y1) + 30*(m2-m1-1) + max 0 30-d1' + min 30 d2'
+                                                       where y2 = year date2
+                                                             y1 = year date1
+                                                             m2 = month date2
+                                                             m1 = month date1
+                                                             d2 = dayOfMonth date2
+                                                             d1 = dayOfMonth date1
+                                                             d2' = if m2 == 2 && d2 > 27 then 30 else d2
+                                                             d1' = if m1 == 2 && d1 > 27 then 30 else d1
+
+dayCount Actual365Fixed (Date serial1) (Date serial2) _ _ = serial2-serial1
+
+yearFraction :: DayCounter -> Date -> Date -> Date -> Date -> Double
+
+yearFraction dayCounter date1 date2 _ _
+
+  | (dayCounter == Actual360 || dayCounter == Thirty360 || dayCounter == Thirty360USA ||
+    dayCounter == Thirty360BondBasis || dayCounter == Thirty360European || dayCounter == Thirty360EurobondBasis ||
+    dayCounter == Thirty360Italian) = fromIntegral(dayCount dayCounter date1 date2 undefined undefined) / 360.0
+
+  | dayCounter == Actual365Fixed = fromIntegral(dayCount dayCounter date1 date2 undefined undefined) /365.0
+
+  | otherwise = error ("unknown day counter " ++ (show dayCounter))

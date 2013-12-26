@@ -1,8 +1,11 @@
 module Time (BusinessDayConvention(..),
              Calendar(..),
              Date(Date),
+             DateGenerationRule(..),
              DayCounter(..),
+             Frequency(..),
              Period(Period),
+             Schedule(..),
              Unit(..),
              adjust,
              advanceByPeriod,
@@ -12,6 +15,7 @@ module Time (BusinessDayConvention(..),
              dayOfMonth,
              dayOfYear,
              endOfMonth,
+             frequencyPerYear,
              isBusinessDay,
              isEndOfMonth,
              isHoliday,
@@ -21,13 +25,14 @@ module Time (BusinessDayConvention(..),
              month,
              plus,
              plusPeriod,
+             schedule,
              serialNumber,
              weekday,
              year,
              yearFraction
             ) where
 
-newtype Date = Date Int deriving (Eq)
+newtype Date = Date Int deriving (Eq, Ord)
 
 data Unit = Days | Weeks | Months | Years deriving (Eq, Show)
 data Period = Period { numberOfUnits :: Int, unit :: Unit }
@@ -512,3 +517,51 @@ advanceByPeriod calendar date (Period n unit) bdc endOfMonth = advanceByUnits ca
 
 -- businessDaysBetween :: Calendar -> Date -> Date -> Bool -> Bool -> Int
 
+data Frequency = NoFrequency |
+                 Once |
+                 Annual |
+                 Semiannual |
+                 EveryFourMonth |
+                 Quarterly |
+                 Bimonthly |
+                 Monthly |
+                 EveryFourthWeek |
+                 Biweekly |
+                 Weekly |
+                 Daily |
+                 OtherFrequency deriving (Eq, Show)
+
+frequencyPerYear :: Frequency -> Int
+frequencyPerYear f = case f of
+                     NoFrequency -> -1
+                     Once -> 0
+                     Annual -> 1
+                     Semiannual -> 2
+                     EveryFourMonth -> 3
+                     Quarterly -> 4
+                     Bimonthly -> 6
+                     Monthly -> 12
+                     EveryFourthWeek -> 13
+                     Biweekly -> 26
+                     Weekly -> 52
+                     Daily -> 365
+                     OtherFrequency -> 999
+
+data DateGenerationRule = Backward |
+                          Forward |
+                          Zero |
+                          ThirdWednesday |
+                          Twentieth |
+                          TwentiethIMM |
+                          OldCDS |
+                          CDS deriving (Eq, Show)
+
+type Schedule = [Date]
+
+schedule :: Date -> Date -> Period -> Calendar -> BusinessDayConvention -> BusinessDayConvention -> DateGenerationRule -> Bool -> Date -> Date -> Schedule
+
+schedule effective termination _ _ _ _ Zero _ _ _ = [effective, termination]
+schedule effective termination (Period n unit) calendar bdc terminationBdc Backward eom first nextToLast = backward termination
+  where backward seed
+          | seed < effective = []
+          | otherwise = backward (advanceByPeriod calendar seed (Period (-n) unit) bdc eom) ++ [seed]

@@ -32,6 +32,8 @@ module Time (BusinessDayConvention(..),
              yearFraction
             ) where
 
+import Data.List(nub)
+
 newtype Date = Date Int deriving (Eq, Ord)
 
 data Unit = Days | Weeks | Months | Years deriving (Eq, Show)
@@ -558,10 +560,26 @@ data DateGenerationRule = Backward |
 
 type Schedule = [Date]
 
-schedule :: Date -> Date -> Period -> Calendar -> BusinessDayConvention -> BusinessDayConvention -> DateGenerationRule -> Bool -> Date -> Date -> Schedule
+schedule :: Date -> Date -> Period -> Calendar -> BusinessDayConvention -> BusinessDayConvention
+            -> DateGenerationRule -> Bool -> Maybe Date -> Maybe Date -> Schedule
 
 schedule effective termination _ _ _ _ Zero _ _ _ = [effective, termination]
-schedule effective termination (Period n unit) calendar bdc terminationBdc Backward eom first nextToLast = backward termination
-  where backward seed
-          | seed < effective = []
-          | otherwise = backward (advanceByPeriod calendar seed (Period (-n) unit) bdc eom) ++ [seed]
+
+schedule effective termination (Period n unit) calendar bdc terminationBdc
+         Backward eom first nextToLast = nub [effective] ++ (backward 1) ++ [seed, termination]
+  where exitDate = case first of
+          Just d -> if d > effective && d < termination
+                    then d
+                    else error("first date out of effective-termination date range " ++
+                               show effective ++ ", " ++ show termination)
+          Nothing -> effective
+        seed = case nextToLast of
+          Just d -> if d > effective && d < termination
+                    then d
+                    else error("nextToLast date out of effective-termination date range " ++
+                               show effective ++ ", " ++ show termination)
+          Nothing -> termination
+        backward periods
+          | advanceByPeriod NullCalendar seed (Period (-periods*n) unit) bdc eom < exitDate =
+            [adjust calendar exitDate bdc]
+          | otherwise = (backward (periods+1)) ++ [(advanceByPeriod calendar seed (Period (-periods*n) unit) bdc eom)]

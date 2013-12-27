@@ -309,7 +309,7 @@ instance Show DayCounter where
     Thirty360Italian -> "30/360 (Italian)"
     Actual365Fixed -> "Actual/365 (Fixed)"
 
-dayCount :: DayCounter -> Date -> Date -> Date -> Date -> Int
+dayCount :: DayCounter -> Date -> Date -> Maybe Date -> Maybe Date -> Int
 
 dayCount Actual360 (Date serial1) (Date serial2) _ _ = fromIntegral(serial2-serial1)
 
@@ -348,7 +348,7 @@ dayCount Thirty360Italian date1 date2 _ _ = 360*(y2-y1) + 30*(m2-m1-1) + max 0 3
 
 dayCount Actual365Fixed (Date serial1) (Date serial2) _ _ = serial2-serial1
 
-yearFraction :: DayCounter -> Date -> Date -> Date -> Date -> Double
+yearFraction :: DayCounter -> Date -> Date -> Maybe Date -> Maybe Date -> Double
 
 yearFraction dayCounter date1 date2 _ _
 

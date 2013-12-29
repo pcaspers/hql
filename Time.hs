@@ -566,7 +566,8 @@ schedule :: Date -> Date -> Period -> Calendar -> BusinessDayConvention -> Busin
 schedule effective termination _ _ _ _ Zero _ _ _ = [effective, termination]
 
 schedule effective termination (Period n unit) calendar bdc terminationBdc
-         Backward eom first nextToLast = nub [effective] ++ (backward 1) ++ [seed, termination]
+         Backward eom first nextToLast = nubSorted ([effective] ++ (backward 1) ++
+                                         [(adjust calendar seed bdc), (adjust calendar termination bdc)])
   where exitDate = case first of
           Just d -> if d > effective && d < termination
                     then d

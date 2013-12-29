@@ -6,7 +6,10 @@ module Time (BusinessDayConvention(..),
              Frequency(..),
              Period(Period),
              Schedule(..),
+             ScheduleConvention,
              Unit(..),
+             eurSwapFixLegConv,
+             eurSwapFloatLegConv,
              adjust,
              advanceByPeriod,
              advanceByUnits,
@@ -20,6 +23,7 @@ module Time (BusinessDayConvention(..),
              isEndOfMonth,
              isHoliday,
              isLeapYear,
+             makeSchedule,
              minus,
              minusPeriod,
              month,
@@ -37,7 +41,7 @@ import Data.List(nub)
 newtype Date = Date Int deriving (Eq, Ord)
 
 data Unit = Days | Weeks | Months | Years deriving (Eq, Show)
-data Period = Period { numberOfUnits :: Int, unit :: Unit }
+data Period = Period { numberOfUnits :: Int, unit :: Unit } deriving Eq
 
 instance Show Period where
      show (Period x u) = show x ++ " " ++ show u
@@ -584,3 +588,19 @@ schedule effective termination (Period n unit) calendar bdc terminationBdc
           | advanceByPeriod NullCalendar seed (Period (-periods*n) unit) bdc eom < exitDate =
             [adjust calendar exitDate bdc]
           | otherwise = (backward (periods+1)) ++ [(advanceByPeriod calendar seed (Period (-periods*n) unit) bdc eom)]
+
+data ScheduleConvention = ScheduleConvention { tenor :: Period, calendar :: Calendar, bdc :: BusinessDayConvention, termBdc :: BusinessDayConvention, rule :: DateGenerationRule, eom :: Bool } deriving (Show, Eq)
+
+eurSwapFixLegConv = ScheduleConvention (Period 1 Years) TARGET ModifiedFollowing ModifiedFollowing Backward False
+eurSwapFloatLegConv = ScheduleConvention (Period 6 Months) TARGET ModifiedFollowing ModifiedFollowing Backward False
+
+makeSchedule :: ScheduleConvention -> Date -> Date -> Schedule
+makeSchedule conv from to = schedule from to (tenor conv) (calendar conv)
+                            (bdc conv) (termBdc conv) (rule conv) (eom conv) Nothing Nothing
+
+
+-- same as nub, but works correct only on a sorted list (more precisely on a list
+-- where equal elements must be placed in direct neighbourhood of each other)
+nubSorted :: Eq a => [a] -> [a]
+nubSorted (x:y:rest) = if x==y then nubSorted (x:rest) else x:(nubSorted (y:rest))
+nubSorted otherList = otherList

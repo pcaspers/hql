@@ -1,18 +1,9 @@
-module Cashflow (Cashflow(..)
-                ) where
+module Cashflows.Coupon (Coupon) where
 
-import Time(Date,
-            DayCounter,
-            dayCount,
-            yearFraction)
+import Time.Date
+import Time.DayCounter
 
-class Cashflow a where
-  amount :: a -> Double
-  payDate :: a -> Date
-  earlierThan :: a -> a -> Bool
-  earlierThan a1 a2 = payDate a1 < payDate a2
-
-class (Cashflow a) => Coupon a where
+class Coupon a where
   -- abstract functions
   accrualStartDate :: a -> Date
   accrualEndDate :: a-> Date
@@ -35,8 +26,3 @@ class (Cashflow a) => Coupon a where
   accruedPeriod a d = yearFraction (dayCounter a) (accrualStartDate a) (min d (accrualEndDate a))
                       (refPeriodStartDate a) (refPeriodEndDate a)
 
-data SimpleCashflow = SimpleCashflow { scAmount :: Double, scPayDate :: Date } deriving (Show, Eq)
-
-instance Cashflow SimpleCashflow where
-  amount c = scAmount c
-  payDate c = scPayDate c

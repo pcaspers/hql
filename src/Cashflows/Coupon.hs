@@ -9,7 +9,8 @@
 
 -- | This module defines coupons
 
-module Cashflows.Coupon (Coupon(..)) where
+module Cashflows.Coupon (Coupon(..),
+                         CouponBasis(..)) where
 
 import Time.Date
 import Time.DayCounter
@@ -49,3 +50,22 @@ class Coupon a where
   accruedDays a d = dayCount (dayCounter a) (accrualStartDate a) (min d (accrualEndDate a))
   accruedPeriod a d = yearFraction (dayCounter a) (accrualStartDate a) (min d (accrualEndDate a))
                       (refPeriodStartDate a) (refPeriodEndDate a)
+
+-- | Basis coupon information
+data CouponBasis =
+  -- | Standard Constructor
+  CouponBasis {
+  -- | Payment date
+  cpPayDate :: Date,
+  -- | Underlying nominal
+  cpNominal :: Double,
+  -- | Day counter for accrual computation
+  cpDayCounter :: DayCounter,
+  -- | Accrual period start date
+  cpAccrualStart :: Date,
+  -- | Accrual period end date
+  cpAccrualEnd :: Date,
+  -- | Reference period start date
+  cpRefStart :: Maybe Date,
+  -- | Reference period end date
+  cpRefEnd :: Maybe Date }

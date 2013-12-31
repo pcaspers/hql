@@ -13,6 +13,7 @@ module Hql(
   module Base.InterestRate,
   module Cashflows.Cashflow,
   module Cashflows.Coupon,
+  module Cashflows.FixedRateCoupon,
   module Time.Calendar,
   module Time.Date,
   module Time.DayCounter,
@@ -24,6 +25,7 @@ module Hql(
 import Base.InterestRate
 import Cashflows.Cashflow
 import Cashflows.Coupon
+import Cashflows.FixedRateCoupon
 import Time.Calendar
 import Time.Date
 import Time.DayCounter

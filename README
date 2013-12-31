@@ -1,0 +1,5 @@
+hql --- a reimplementation of QuantLib, a free/open-source library for quantitative finance, <http://quantlib.org>
+
+The aim of this project is to reimplement (parts of) the C++ library QuantLib in Haskell.
+
+At this stage the implementation is experimental and interfaces are likely to change.

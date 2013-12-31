@@ -1,4 +1,4 @@
-:{-
+{-
  Copyright (C) 2013 Peter Caspers
 
  This file is part of hql which is a reimplementation of QuantLib,

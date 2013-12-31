@@ -19,6 +19,7 @@ library
   exposed-modules:     Hql,
                        Base.InterestRate,
                        Cashflows.Cashflow, Cashflows.Coupon,
+                       Cashflows.FixedRateCoupon,
                        Time.Calendar, Time.Date, Time.DayCounter,
                        Time.Frequency, Time.Period, Time.Schedule
   --other-modules:

@@ -1,3 +1,14 @@
+{-
+ Copyright (C) 2013 Peter Caspers
+
+ This file is part of hql which is a reimplementation of QuantLib,
+ a free-software/open-source library for financial quantitative
+ analysts and developers. Please refer to the documentation available
+ at <http://quantlib.org/> for the original copyright holders.
+-}
+
+-- | This module contains holiday calendar definitions and
+--   functions to apply adjustments to dates
 module Time.Calendar (BusinessDayConvention(..),
                       Calendar(..),
                       adjust,
@@ -12,11 +23,32 @@ module Time.Calendar (BusinessDayConvention(..),
 import Time.Date
 import Time.Period
 
-data BusinessDayConvention = Following | ModifiedFollowing | Preceding | ModifiedPreceding | Unadjusted deriving (Eq,Show)
+-- | These conventions specify the algorithm used to adjust a date in case
+--   it is not a valid business day.
+data BusinessDayConvention = Following |          -- ^ Choose the first business day after the given holiday.
+                             ModifiedFollowing |  -- ^ Choose the first business day after
+                                                  -- the given holiday unless it belongs
+                                                  -- to a different month, in which case
+                                                  -- choose the first business day before
+                                                  -- the holiday.
+                             Preceding |          -- ^ Choose the first business day before
+                                                  -- the given holiday.
+                             ModifiedPreceding |  -- ^ Choose the first business day before
+                                                  -- the given holiday unless it belongs
+                                                  -- to a different month, in which case
+                                                  -- choose the first business day after
+                                                  -- the holiday.
+                             Unadjusted           -- ^ Do not adjust.
+                           deriving (Eq,Show)
 
-data Calendar = NullCalendar | WeekendsOnly | TARGET |
-                JointCalendar Calendar Calendar deriving (Eq, Show)
+-- | Calendar definitions
+data Calendar = NullCalendar |                    -- ^ No holidays
+                WeekendsOnly |                    -- ^ Only weekends are holidays
+                TARGET |                          -- ^ TARGET calendar, see <http://www.ecb.int>
+                JointCalendar Calendar Calendar   -- ^ Calendar composed by two calendars
+              deriving (Eq, Show)
 
+-- | True if date is a business day w.r.t. a given calendar
 isBusinessDay :: Calendar -> Date -> Bool
 
 isBusinessDay NullCalendar _ = True
@@ -41,15 +73,18 @@ isBusinessDay TARGET date
 
 isBusinessDay (JointCalendar calendar1 calendar2) date = (isBusinessDay calendar1 date) && (isBusinessDay calendar2 date)
 
+-- | True if date is a holiday w.r.t. a given calendar
 isHoliday :: Calendar -> Date -> Bool
 isHoliday calendar date = not(isBusinessDay calendar date)
 
+-- | True if date is a weekend w.r.t. a given calendar
 isWeekend :: Calendar -> Int -> Bool
 isWeekend calendar weekday
   | weekday < 1 || weekday > 7 = error("weekday " ++ show weekday ++ " not allowed")
   | calendar == NullCalendar = False
   | otherwise = weekday == 1 || weekday == 7
 
+-- | Day of year index for easter monday in western calendar implementations
 easterMondayWestern :: Int -> Int
 easterMondayWestern year
   | year < 1901 || year > 2199 = error("year " ++ show year ++ " not admissable")
@@ -86,6 +121,7 @@ easterMondayWestern year
                         108,  92, 112, 104,  89, 108, 100,  85, 105,  96,   -- 2180-2189
                         116, 101,  93, 112,  97,  89, 109, 100,  85, 105 ]  -- 2190-2199
 
+-- | Day of year index for easter monday in orthodox calendar implementations
 easterMondayOrthodox :: Int -> Int
 easterMondayOrthodox year
   | year < 1901 || year > 2199 = error("year " ++ show year ++ " not admissable")
@@ -122,6 +158,7 @@ easterMondayOrthodox year
                         108,  99, 119, 104, 124, 115, 100, 120, 112, 103,   -- 2180-2189
                         116, 108, 128, 119, 104, 124, 116, 100, 120, 112 ]  -- 2190-2199
 
+-- | Adjust date w.r.t. given calendar and business day convention
 adjust :: Calendar -> Date -> BusinessDayConvention -> Date
 adjust calendar date bdc = case bdc of
   Unadjusted -> date
@@ -136,14 +173,18 @@ adjust calendar date bdc = case bdc of
                                else d'
                                where d' = adjust calendar date Preceding
 
+-- | True if date is the last business day in month w.r.t. a given calendar
 isEndOfMonth :: Calendar -> Date -> Bool
 isEndOfMonth calendar date = month(date) /= month (adjust calendar (date `plus` 1) Following)
 
+-- | Last business day in a month for a given date w.r.t. a given calendar
 endOfMonth :: Calendar -> Date -> Date
 endOfMonth NullCalendar d = date (monthLength (month d) (isLeapYear (year d))) (month d) (year d)
 endOfMonth calendar d = adjust calendar (endOfMonth NullCalendar d) Preceding
 
-
+-- | Advances a date w.r.t. a given calendar and business day convention by a given period
+--   If end of month (eom) is set to True an end of month date will be also an end of month
+--   date after the shift.
 advanceByUnits :: Calendar -> Date -> Int -> Unit -> BusinessDayConvention -> Bool -> Date
 advanceByUnits calendar d 0 _ bdc _ = adjust calendar d bdc
 advanceByUnits calendar d n Days bdc _
@@ -164,7 +205,6 @@ backwardOverHolidays :: Calendar -> Date -> Date
 backwardOverHolidays calendar date = if isHoliday calendar date
                                      then backwardOverHolidays calendar (date `minus` 1)
                                      else date
-
+-- | Same as advanceByUnits, only the period is given directly as a period, not in terms of units.
 advanceByPeriod :: Calendar -> Date -> Period -> BusinessDayConvention -> Bool -> Date
 advanceByPeriod calendar date (Period n unit) bdc endOfMonth = advanceByUnits calendar date n unit bdc endOfMonth
-

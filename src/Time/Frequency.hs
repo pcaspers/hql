@@ -1,20 +1,34 @@
+{-
+ Copyright (C) 2013 Peter Caspers
+
+ This file is part of hql which is a reimplementation of QuantLib,
+ a free-software/open-source library for financial quantitative
+ analysts and developers. Please refer to the documentation available
+ at <http://quantlib.org/> for the original copyright holders.
+-}
+
+-- | This module defines frequencies
+
 module Time.Frequency (Frequency(..),
                        frequencyPerYear) where
 
-data Frequency = NoFrequency |
-                 Once |
-                 Annual |
-                 Semiannual |
-                 EveryFourMonth |
-                 Quarterly |
-                 Bimonthly |
-                 Monthly |
-                 EveryFourthWeek |
-                 Biweekly |
-                 Weekly |
-                 Daily |
-                 OtherFrequency deriving (Eq, Show)
+-- | Allowed frequencies
+data Frequency = NoFrequency |      -- ^null frequency
+                 Once |             -- ^only once, e.g., a zero-coupon
+                 Annual |           -- ^once a year
+                 Semiannual |       -- ^twice a year
+                 EveryFourMonth |   -- ^every fourth month
+                 Quarterly |        -- ^every third month
+                 Bimonthly |        -- ^every second month
+                 Monthly |          -- ^once a month
+                 EveryFourthWeek |  -- ^every fourth week
+                 Biweekly |         -- ^every second week
+                 Weekly |           -- ^once a week
+                 Daily |            -- ^once a day
+                 OtherFrequency     -- ^some other unknown frequency
+               deriving (Eq, Show)
 
+-- | Number of events per year for a given frequency
 frequencyPerYear :: Frequency -> Int
 frequencyPerYear f = case f of
                      NoFrequency -> -1

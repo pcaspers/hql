@@ -1,3 +1,15 @@
+{-
+ Copyright (C) 2013 Peter Caspers
+
+ This file is part of hql which is a reimplementation of QuantLib,
+ a free-software/open-source library for financial quantitative
+ analysts and developers. Please refer to the documentation available
+ at <http://quantlib.org/> for the original copyright holders.
+-}
+
+-- | This module contains the definition of the date type and
+--   associated functions.
+
 module Time.Date (Date(Date),
                   date,
                   dayOfMonth,
@@ -16,6 +28,7 @@ module Time.Date (Date(Date),
 
 import Time.Period
 
+-- | Type representing dates in terms of a serial number.
 newtype Date = Date Int deriving (Eq, Ord)
 
 instance Show Date where
@@ -35,30 +48,38 @@ instance Show Date where
                           11 -> "November"
                           12 -> "December"
 
+-- | True if a date object is constructed with a valid serial number
 checkSerialNumber :: Date -> Bool
 checkSerialNumber (Date serialnumber) = if serialnumber >= 367 && serialnumber <= 109574 then True else False -- Jan 1st 1901 to Dec 31st 2199
 
+-- | The serial number of a date
 serialNumber :: Date -> Int
 serialNumber (Date serial) = if checkSerialNumber(Date serial) then serial else error ("invalid serial number " ++ show serial)
 
+-- | Weekday of a date, where 1 represents Sunday, 2 Monday, ... , 7 Saturday
 weekday :: Date -> Int
 weekday date = if wd == 0 then 7 else wd
      where wd = mod (serialNumber date) 7
 
+-- | Day index within a year
 dayOfYear :: Date -> Int
 dayOfYear date = (serialNumber date) - (yearOffset.year) date
 
+-- | Day index within a month
 dayOfMonth :: Date -> Int
 dayOfMonth date = dayOfYear date - monthOffset (month date) ((isLeapYear.year) date)
 
+-- | Add an integer to a date's serial number
 plus :: Date -> Int -> Date
 plus date days = if checkSerialNumber res then res else error ("invalid serial number " ++ show res)
     where res = Date (serialNumber date + days)
 
+-- | Subtract an integer from a date's serial number
 minus :: Date -> Int -> Date
 minus date days = if checkSerialNumber res then res else error ("invalid serial number " ++ show res)
     where res = Date (serialNumber date - days)
 
+-- | Add a period to a date
 plusPeriod :: Date -> Period -> Date
 plusPeriod dat (Period n Days) = dat `plus` n
 plusPeriod dat (Period n Weeks) = dat `plus` (7*n)
@@ -84,15 +105,18 @@ plusPeriod dat (Period n Years) = if y < 1900 || y > 2199
           | d == 29 && m == 2 && (not (isLeapYear y)) = 28
           | otherwise = d
 
+-- | Subtract a period from a date
 minusPeriod :: Date -> Period -> Date
 minusPeriod d (Period n unit) = plusPeriod d (Period (-n) unit)
 
+-- | Year of a date
 year :: Date -> Int
 year date = year + correction
     where serial = serialNumber date
           year = ( div serial 365 ) + 1900
           correction = if serial <= yearOffset year then -1 else 0
 
+-- | Month of a date
 month :: Date -> Int
 month date = m''
     where d = dayOfYear date
@@ -107,6 +131,7 @@ month date = m''
              | (d > monthOffset (x+1) isLeap) = correctm' (x+1)
              | otherwise = x
 
+-- | Construct a date from given day, month, year
 date :: Int -> Int -> Int -> Date
 date day month year
     | day >= 1 && day <= mLen = Date (day + mOffset + yOffset)
@@ -116,6 +141,7 @@ date day month year
           mOffset = monthOffset month isLeap
           yOffset = yearOffset year
 
+-- | True if given year is a leap year
 isLeapYear :: Int -> Bool
 isLeapYear year
     | year >= 1900 && year <= 2200 = isLeapYearList !! (year-1900)
@@ -184,6 +210,7 @@ isLeapYear year
             -- 2200
             False ]
 
+-- | Day offset due to given month. If leap is True February is considered to have 29 days.
 monthOffset :: Int -> Bool -> Int
 monthOffset month leap
    | month >= 1 && month <=12 = case leap of
@@ -193,6 +220,7 @@ monthOffset month leap
    where monthOffsetList = [ 0,  31,  59,  90, 120, 151, 181, 212, 243, 273, 304, 334, 365 ]
          monthLeapOffsetList = [ 0,  31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366 ]
 
+-- | Length of month. If leap is True February is considered to have 29 days.
 monthLength :: Int -> Bool -> Int
 monthLength month leap
    | month >= 1 && month <= 12 = case leap of
@@ -202,6 +230,7 @@ monthLength month leap
    where monthLengthList = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
          monthLeapLengthList = [ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ]
 
+-- | Day offset due to given year.
 yearOffset :: Int -> Int
 yearOffset year
    | year >= 1900 && year <= 2200 = yearOffsetList !! (year-1900)
@@ -268,4 +297,3 @@ yearOffset year
             105922,106287,106652,107018,107383,107748,108113,108479,108844,109209,
             -- 2200
             109574 ]
-

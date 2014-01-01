@@ -7,14 +7,10 @@
  at <http://quantlib.org/> for the original copyright holders.
 -}
 
--- | This module contains all Hql submodules
+-- | This module contains all Base submodules
 
-module Hql(
-  module Hql.Base,
-  module Hql.Cashflows,
-  module Hql.Time
+module Hql.Base(
+  module Hql.Base.InterestRate,
   ) where
 
-import Hql.Base
-import Hql.Cashflows
-import Hql.Time
+import Hql.Base.InterestRate

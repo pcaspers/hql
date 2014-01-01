@@ -17,11 +17,12 @@ cabal-version:       >=1.8
 
 library
   exposed-modules:     Hql,
-                       Base.InterestRate,
-                       Cashflows.Cashflow, Cashflows.Coupon,
-                       Cashflows.FixedRateCoupon,
-                       Time.Calendar, Time.Date, Time.DayCounter,
-                       Time.Frequency, Time.Period, Time.Schedule
+                       Hql.Base, Hql.Cashflows, Hql.Time,
+                       Hql.Base.InterestRate,
+                       Hql.Cashflows.Cashflow, Hql.Cashflows.Coupon,
+                       Hql.Cashflows.FixedRateCoupon,
+                       Hql.Time.Calendar, Hql.Time.Date, Hql.Time.DayCounter,
+                       Hql.Time.Frequency, Hql.Time.Period, Hql.Time.Schedule
   --other-modules:
   build-depends:       base ==4.5.*
   hs-source-dirs:      src

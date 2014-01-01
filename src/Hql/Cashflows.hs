@@ -7,14 +7,14 @@
  at <http://quantlib.org/> for the original copyright holders.
 -}
 
--- | This module contains all Hql submodules
+-- | This module contains all Cashflows submodules
 
-module Hql(
-  module Hql.Base,
-  module Hql.Cashflows,
-  module Hql.Time
+module Hql.Cashflows(
+  module Hql.Cashflows.Cashflow,
+  module Hql.Cashflows.Coupon,
+  module Hql.Cashflows.FixedRateCoupon,
   ) where
 
-import Hql.Base
-import Hql.Cashflows
-import Hql.Time
+import Hql.Cashflows.Cashflow
+import Hql.Cashflows.Coupon
+import Hql.Cashflows.FixedRateCoupon

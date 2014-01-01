@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8" /><title>Hql.Time.DayCounter</title><link href="ocean.css" rel="stylesheet" type="text/css" title="Ocean" /><script src="haddock-util.js" type="text/javascript"></script><script type="text/javascript">//<![CDATA[
+window.onload = function () {pageLoad();setSynopsis("mini_Hql-Time-DayCounter.html");};
+//]]>
+</script></head><body><div id="package-header"><ul class="links" id="page-menu"><li><a href="index.html">Contents</a></li><li><a href="doc-index.html">Index</a></li></ul><p class="caption">hql-0.1.0.0: Reimplementation of QuantLib in Haskell</p></div><div id="content"><div id="module-header"><table class="info"><tr><th>Safe Haskell</th><td>Safe-Infered</td></tr></table><p class="caption">Hql.Time.DayCounter</p></div><div id="description"><p class="caption">Description</p><div class="doc"><p>This module defines day counters and corresponding day count
+   and time measuring functions.
+</p></div></div><div id="synopsis"><p id="control.syn" class="caption expander" onclick="toggleSection('syn')">Synopsis</p><ul id="section.syn" class="hide" onclick="toggleSection('syn')"><li class="src short"><span class="keyword">data</span>  <a href="#t:DayCounter">DayCounter</a> <ul class="subs"><li>= <a href="#v:Actual360">Actual360</a>  </li><li>| <a href="#v:Thirty360">Thirty360</a>  </li><li>| <a href="#v:Thirty360USA">Thirty360USA</a>  </li><li>| <a href="#v:Thirty360BondBasis">Thirty360BondBasis</a>  </li><li>| <a href="#v:Thirty360European">Thirty360European</a>  </li><li>| <a href="#v:Thirty360EurobondBasis">Thirty360EurobondBasis</a>  </li><li>| <a href="#v:Thirty360Italian">Thirty360Italian</a>  </li><li>| <a href="#v:Actual365Fixed">Actual365Fixed</a>  </li></ul></li><li class="src short"><a href="#v:dayCount">dayCount</a> :: <a href="Hql-Time-DayCounter.html#t:DayCounter">DayCounter</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Int</li><li class="src short"><a href="#v:yearFraction">yearFraction</a> :: <a href="Hql-Time-DayCounter.html#t:DayCounter">DayCounter</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Maybe <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Maybe <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Double</li></ul></div><div id="interface"><h1>Documentation</h1><div class="top"><p class="src"><span class="keyword">data</span>  <a name="t:DayCounter" class="def">DayCounter</a>  </p><div class="doc"><p>Day counter definitions
+</p></div><div class="subs constructors"><p class="caption">Constructors</p><table><tr><td class="src"><a name="v:Actual360" class="def">Actual360</a></td><td class="doc"><p>Actual/360 day count convention, also known as &quot;Act/360&quot;, &quot;A/360&quot;
+</p></td></tr><tr><td class="src"><a name="v:Thirty360" class="def">Thirty360</a></td><td class="doc"><p>30/360 day count convention
+        The 30/360 day count can be calculated according to US, European, or
+        Italian conventions.
+</p><p>US (NASD) convention: if the starting date is the 31st of a
+        month, it becomes equal to the 30th of the same month.
+        If the ending date is the 31st of a month and the starting
+        date is earlier than the 30th of a month, the ending date
+        becomes equal to the 1st of the next month, otherwise the
+        ending date becomes equal to the 30th of the same month.
+        Also known as &quot;30/360&quot;, &quot;360/360&quot;, or &quot;Bond Basis&quot;
+</p><p>European convention: starting dates or ending dates that
+        occur on the 31st of a month become equal to the 30th of the
+        same month.
+        Also known as &quot;30E/360&quot;, or &quot;Eurobond Basis&quot;
+</p><p>Italian convention: starting dates or ending dates that
+        occur on February and are grater than 27 become equal to 30
+        for computational sake. 
+</p></td></tr><tr><td class="src"><a name="v:Thirty360USA" class="def">Thirty360USA</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Thirty360BondBasis" class="def">Thirty360BondBasis</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Thirty360European" class="def">Thirty360European</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Thirty360EurobondBasis" class="def">Thirty360EurobondBasis</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Thirty360Italian" class="def">Thirty360Italian</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src"><a name="v:Actual365Fixed" class="def">Actual365Fixed</a></td><td class="doc"><p>Actual/365 (Fixed) day count convention
+       &quot;Actual/365 (Fixed)&quot; day count convention, also know as
+        &quot;Act/365 (Fixed)&quot;, &quot;A/365 (Fixed)&quot;, or &quot;A/365F&quot;.
+</p><p>According to ISDA, &quot;Actual/365&quot; (without &quot;Fixed&quot;) is
+       an alias for &quot;Actual/Actual (ISDA)&quot; (see
+       ActualActual.)  If Actual/365 is not explicitly
+       specified as fixed in an instrument specification,
+       you might want to double-check its meaning. 
+</p></td></tr></table></div><div class="subs instances"><p id="control.i:DayCounter" class="caption collapser" onclick="toggleSection('i:DayCounter')">Instances</p><div id="section.i:DayCounter" class="show"><table><tr><td class="src">Eq <a href="Hql-Time-DayCounter.html#t:DayCounter">DayCounter</a></td><td class="doc empty">&nbsp;</td></tr><tr><td class="src">Show <a href="Hql-Time-DayCounter.html#t:DayCounter">DayCounter</a></td><td class="doc empty">&nbsp;</td></tr></table></div></div></div><div class="top"><p class="src"><a name="v:dayCount" class="def">dayCount</a> :: <a href="Hql-Time-DayCounter.html#t:DayCounter">DayCounter</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Int</p><div class="doc"><p>Number of days w.r.t. a given day counter for a given period.
+</p></div></div><div class="top"><p class="src"><a name="v:yearFraction" class="def">yearFraction</a> :: <a href="Hql-Time-DayCounter.html#t:DayCounter">DayCounter</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Maybe <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Maybe <a href="Hql-Time-Date.html#t:Date">Date</a> -&gt; Double</p><div class="doc"><p>Yearfraction w.r.t. a given day counter and an optional reference period.
+   The latter is only relevant for some day counters such as Act/Act.
+</p></div></div></div></div><div id="footer"><p>Produced by <a href="http://www.haskell.org/haddock/">Haddock</a> version 2.10.0</p></div></body></html>

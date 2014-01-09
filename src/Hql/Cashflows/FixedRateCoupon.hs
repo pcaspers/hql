@@ -7,7 +7,7 @@
  at <http://quantlib.org/> for the original copyright holders.
 -}
 
--- | This module defines coupons
+-- | This module defines fixed rate coupons
 
 module Hql.Cashflows.FixedRateCoupon (FixedRateCoupon(..)
                                      ) where
